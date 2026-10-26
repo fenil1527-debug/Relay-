@@ -1,70 +1,62 @@
-import mongoose from 'mongoose';
+import getSupabase from '../config/supabase.js';
+import { SupabaseQuery, toDbRecord, toJsDoc, toDbColumn } from './supabaseHelper.js';
 
-// Canonical block types — the core data model
-// Provider-native shapes are NEVER persisted
-const blockSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ['text', 'tool_use', 'tool_result'],
-    required: true,
-  },
-  // text block
-  text: String,
-  // tool_use block
-  id: String,       // tool_use_id
-  name: String,     // tool name
-  input: mongoose.Schema.Types.Mixed,
-  // tool_result block
-  tool_use_id: String,
-  output: String,
-  is_error: {
-    type: Boolean,
-    default: false,
-  },
-}, { _id: false });
+export class Message {
+  constructor(data = {}) {
+    Object.assign(this, data);
+  }
 
-const usageSchema = new mongoose.Schema({
-  inputTokens: { type: Number, default: 0 },
-  outputTokens: { type: Number, default: 0 },
-}, { _id: false });
+  static find(filters) {
+    return new SupabaseQuery('messages', filters, Message, false);
+  }
 
-const messageSchema = new mongoose.Schema({
-  sessionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Session',
-    required: true,
-    index: true,
-  },
-  seq: {
-    type: Number,
-    required: true,
-  },
-  role: {
-    type: String,
-    enum: ['user', 'assistant'],
-    required: true,
-  },
-  blocks: {
-    type: [blockSchema],
-    required: true,
-  },
-  provider: String,
-  model: String,
-  usage: usageSchema,
-  turnId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Turn',
-  },
-  isSummary: {
-    type: Boolean,
-    default: false,
-  },
-}, {
-  timestamps: true,
-});
+  static findOne(filters) {
+    return new SupabaseQuery('messages', filters, Message, true);
+  }
 
-// UNIQUE constraint: (sessionId, seq) — total order, prevents double-writes
-messageSchema.index({ sessionId: 1, seq: 1 }, { unique: true });
+  static async countDocuments(filters = {}) {
+    const supabase = getSupabase();
+    let query = supabase.from('messages').select('*', { count: 'exact', head: true });
+    for (const [key, val] of Object.entries(filters)) {
+      query = query.eq(toDbColumn(key), val);
+    }
+    const { count, error } = await query;
+    if (error) throw error;
+    return count || 0;
+  }
 
-const Message = mongoose.model('Message', messageSchema);
+  static async create(doc) {
+    const supabase = getSupabase();
+    const record = toDbRecord({
+      blocks: [],
+      usage: { inputTokens: 0, outputTokens: 0 },
+      isSummary: false,
+      ...doc,
+    });
+    delete record.id;
+
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(record)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return new Message(toJsDoc(data));
+  }
+
+  static async deleteMany(filters) {
+    const supabase = getSupabase();
+    let query = supabase.from('messages').delete();
+
+    for (const [key, val] of Object.entries(filters)) {
+      query = query.eq(toDbColumn(key), val);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+    return { acknowledged: true };
+  }
+}
+
 export default Message;

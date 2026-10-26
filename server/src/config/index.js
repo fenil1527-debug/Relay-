@@ -13,8 +13,10 @@ const config = {
   port: process.env.PORT || 3001,
   nodeEnv: process.env.NODE_ENV || 'development',
   
-  // MongoDB
-  databaseUrl: process.env.DATABASE_URL || 'mongodb://localhost:27017/relay',
+  // Supabase Database
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || '',
+  databaseUrl: process.env.DATABASE_URL || '',
   
   // Auth
   jwtSecret: process.env.AUTH_SECRET || 'dev-secret-change-me',

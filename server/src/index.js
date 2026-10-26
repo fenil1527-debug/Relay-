@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
@@ -57,8 +56,24 @@ app.use((req, res) => {
 // ── Database connection and server start ─────────────────────────────────────
 async function start() {
   try {
-    await mongoose.connect(config.databaseUrl);
-    console.log('✓ Connected to MongoDB');
+    if (config.supabaseUrl && config.supabaseKey) {
+      try {
+        const { getSupabase } = await import('./config/supabase.js');
+        const supabase = getSupabase();
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error && error.code !== 'PGRST116') {
+          console.warn('  ⚠ Supabase check warning:', error.message);
+          console.warn('    (Ensure you have executed supabase_schema.sql in your Supabase SQL Editor)');
+        } else {
+          console.log('✓ Connected to Supabase PostgreSQL database');
+        }
+      } catch (dbErr) {
+        console.warn('  ⚠ Could not verify Supabase table yet:', dbErr.message);
+      }
+    } else {
+      console.log('  ℹ Notice: Supabase credentials not yet configured in .env');
+      console.log('    Add SUPABASE_URL and SUPABASE_KEY to connect your database.');
+    }
     
     app.listen(config.port, () => {
       console.log(`✓ Relay server running on port ${config.port}`);

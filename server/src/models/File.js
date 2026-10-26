@@ -1,30 +1,96 @@
-import mongoose from 'mongoose';
+import getSupabase from '../config/supabase.js';
+import { SupabaseQuery, toDbRecord, toJsDoc, toDbColumn } from './supabaseHelper.js';
 
-const fileSchema = new mongoose.Schema({
-  sessionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Session',
-    required: true,
-    index: true,
-  },
-  path: {
-    type: String,
-    required: true,
-  },
-  content: {
-    type: String,
-    default: '',
-  },
-  version: {
-    type: Number,
-    default: 1,
-  },
-}, {
-  timestamps: true,
-});
+export class File {
+  constructor(data = {}) {
+    Object.assign(this, data);
+  }
 
-// UNIQUE constraint: one file per path per session
-fileSchema.index({ sessionId: 1, path: 1 }, { unique: true });
+  static find(filters) {
+    return new SupabaseQuery('files', filters, File, false);
+  }
 
-const File = mongoose.model('File', fileSchema);
+  static findOne(filters) {
+    return new SupabaseQuery('files', filters, File, true);
+  }
+
+  static async countDocuments(filters = {}) {
+    const supabase = getSupabase();
+    let query = supabase.from('files').select('*', { count: 'exact', head: true });
+    for (const [key, val] of Object.entries(filters)) {
+      query = query.eq(toDbColumn(key), val);
+    }
+    const { count, error } = await query;
+    if (error) throw error;
+    return count || 0;
+  }
+
+  static async findOneAndUpdate(filters, updates, options = {}) {
+    const supabase = getSupabase();
+    const existing = await File.findOne(filters);
+
+    if (existing) {
+      const record = toDbRecord(updates);
+      delete record.id;
+      record.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('files')
+        .update(record)
+        .eq('id', existing.id || existing._id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return toJsDoc(data, File);
+    }
+
+    if (options.upsert) {
+      const record = toDbRecord({
+        ...filters,
+        ...updates,
+      });
+      delete record.id;
+
+      const { data, error } = await supabase
+        .from('files')
+        .insert(record)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return toJsDoc(data, File);
+    }
+
+    return null;
+  }
+
+  static async findOneAndDelete(filters) {
+    const supabase = getSupabase();
+    const existing = await File.findOne(filters);
+    if (!existing) return null;
+
+    const { error } = await supabase
+      .from('files')
+      .delete()
+      .eq('id', existing.id || existing._id);
+
+    if (error) throw error;
+    return existing;
+  }
+
+  static async deleteMany(filters) {
+    const supabase = getSupabase();
+    let query = supabase.from('files').delete();
+
+    for (const [key, val] of Object.entries(filters)) {
+      query = query.eq(toDbColumn(key), val);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+    return { acknowledged: true };
+  }
+}
+
 export default File;

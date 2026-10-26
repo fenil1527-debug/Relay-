@@ -1,37 +1,45 @@
-import mongoose from 'mongoose';
+import getSupabase from '../config/supabase.js';
+import { SupabaseQuery, toDbRecord, toJsDoc, toDbColumn } from './supabaseHelper.js';
 
-const handoffSchema = new mongoose.Schema({
-  sessionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Session',
-    required: true,
-    index: true,
-  },
-  turnId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Turn',
-    required: false,
-    default: null,
-  },
-  fromProvider: {
-    type: String,
-    required: true,
-  },
-  toProvider: {
-    type: String,
-    required: true,
-  },
-  reason: {
-    type: String,
-    required: true,
-  },
-  packet: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {},
-  },
-}, {
-  timestamps: true,
-});
+export class Handoff {
+  constructor(data = {}) {
+    Object.assign(this, data);
+  }
 
-const Handoff = mongoose.model('Handoff', handoffSchema);
+  static find(filters) {
+    return new SupabaseQuery('handoffs', filters, Handoff, false);
+  }
+
+  static async create(doc) {
+    const supabase = getSupabase();
+    const record = toDbRecord({
+      packet: {},
+      ...doc,
+    });
+    delete record.id;
+
+    const { data, error } = await supabase
+      .from('handoffs')
+      .insert(record)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return new Handoff(toJsDoc(data));
+  }
+
+  static async deleteMany(filters) {
+    const supabase = getSupabase();
+    let query = supabase.from('handoffs').delete();
+
+    for (const [key, val] of Object.entries(filters)) {
+      query = query.eq(toDbColumn(key), val);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+    return { acknowledged: true };
+  }
+}
+
 export default Handoff;

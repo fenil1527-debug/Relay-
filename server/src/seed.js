@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
 import config from './config/index.js';
+import getSupabase from './config/supabase.js';
 import User from './models/User.js';
 import Session from './models/Session.js';
 import Message from './models/Message.js';
@@ -10,9 +10,9 @@ import LedgerEntry from './models/LedgerEntry.js';
 import ProviderAttempt from './models/ProviderAttempt.js';
 
 async function seed() {
-  console.log('Connecting to MongoDB...');
-  await mongoose.connect(config.databaseUrl);
-  console.log('Connected!');
+  console.log('Connecting to Supabase...');
+  const supabase = getSupabase();
+  console.log('Connected to Supabase client!');
 
   // Clear existing demo data
   let user = await User.findOne({ githubId: 'demo-user' });
@@ -240,7 +240,6 @@ export default router;
   console.log('Created demo handoff');
 
   console.log('✅ Seed completed successfully!');
-  await mongoose.disconnect();
 }
 
 seed().catch((err) => {
