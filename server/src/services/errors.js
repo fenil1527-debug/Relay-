@@ -38,10 +38,18 @@ export function classifyError(error) {
   }
 
   // Authentication failure — skip this provider for the session
-  if (status === 401 || status === 403) {
+  if (
+    status === 401 ||
+    status === 403 ||
+    message.includes('api key') ||
+    message.includes('apikey') ||
+    message.includes('credentials') ||
+    message.includes('unauthorized') ||
+    message.includes('authentication')
+  ) {
     return {
       class: ErrorClass.FAILOVER,
-      reason: `Auth failure (${status})`,
+      reason: `Auth failure (${status || 'missing/invalid credentials'})`,
       skipProvider: true,
     };
   }
