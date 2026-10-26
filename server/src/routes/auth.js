@@ -39,11 +39,20 @@ if (config.githubClientId && config.githubClientSecret) {
 }
 
 // GitHub OAuth initiation
-router.get('/github', passport.authenticate('github', { scope: ['user:email'], session: false }));
+router.get('/github', (req, res, next) => {
+  if (!config.githubClientId || !config.githubClientSecret) {
+    return res.redirect(`${config.clientUrl}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
+  }
+  passport.authenticate('github', { scope: ['user:email'], session: false })(req, res, next);
+});
 
 // GitHub OAuth callback
-router.get('/github/callback',
-  passport.authenticate('github', { failureRedirect: `${config.clientUrl}/login?error=auth_failed`, session: false }),
+router.get('/github/callback', (req, res, next) => {
+  if (!config.githubClientId || !config.githubClientSecret) {
+    return res.redirect(`${config.clientUrl}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
+  }
+  passport.authenticate('github', { failureRedirect: `${config.clientUrl}/login?error=auth_failed`, session: false })(req, res, next);
+},
   (req, res) => {
     const token = generateToken(req.user._id.toString());
     
