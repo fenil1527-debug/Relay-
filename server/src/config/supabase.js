@@ -11,7 +11,12 @@ export function getSupabase() {
       );
     }
 
-    supabaseClient = createClient(config.supabaseUrl, config.supabaseKey, {
+    const sanitizedUrl = (config.supabaseUrl || '')
+      .trim()
+      .replace(/\/rest\/v1\/?$/i, '')
+      .replace(/\/+$/, '');
+
+    supabaseClient = createClient(sanitizedUrl, config.supabaseKey.trim(), {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
