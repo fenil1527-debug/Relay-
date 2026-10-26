@@ -29,9 +29,14 @@ function createAdapter(providerString) {
       return new AnthropicAdapter(model || undefined);
     case 'openai':
       return new OpenAIAdapter('openai', model || 'gpt-4o');
-    case 'groq':
-      return new OpenAIAdapter('groq', model || 'llama-3.1-70b-versatile', 
+    case 'groq': {
+      let groqModel = model;
+      if (!groqModel || groqModel.includes('llama-3.3') || groqModel.includes('llama-3.1')) {
+        groqModel = config.openaiCompatModel || 'openai/gpt-oss-120b';
+      }
+      return new OpenAIAdapter('groq', groqModel, 
         'https://api.groq.com/openai/v1', config.openaiCompatApiKey);
+    }
     case 'openrouter':
       return new OpenAIAdapter('openrouter', model || 'meta-llama/llama-3.1-70b-instruct',
         'https://openrouter.ai/api/v1', config.openaiCompatApiKey);

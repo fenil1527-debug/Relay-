@@ -49,7 +49,7 @@ async function seed() {
     fallbackChain: [
       'anthropic:claude-3-5-sonnet-20241022',
       'openai:gpt-4o',
-      'groq:llama-3.3-70b-versatile',
+      'groq:openai/gpt-oss-120b',
     ],
     tokenCap: 100000,
   });
