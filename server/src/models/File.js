@@ -14,6 +14,36 @@ export class File {
     return new SupabaseQuery('files', filters, File, true);
   }
 
+  static async create(doc) {
+    const supabase = getSupabase();
+    if (Array.isArray(doc)) {
+      const records = doc.map(d => {
+        const r = toDbRecord({ content: '', version: 1, ...d });
+        delete r.id;
+        return r;
+      });
+      const { data, error } = await supabase.from('files').insert(records).select();
+      if (error) throw error;
+      return (data || []).map(row => new File(toJsDoc(row)));
+    }
+
+    const record = toDbRecord({
+      content: '',
+      version: 1,
+      ...doc,
+    });
+    delete record.id;
+
+    const { data, error } = await supabase
+      .from('files')
+      .insert(record)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return new File(toJsDoc(data));
+  }
+
   static async countDocuments(filters = {}) {
     const supabase = getSupabase();
     let query = supabase.from('files').select('*', { count: 'exact', head: true });

@@ -16,6 +16,21 @@ export class LedgerEntry {
 
   static async create(doc) {
     const supabase = getSupabase();
+    if (Array.isArray(doc)) {
+      const records = doc.map(d => {
+        const r = toDbRecord({
+          status: 'active',
+          sourceSeq: 0,
+          ...d,
+        });
+        delete r.id;
+        return r;
+      });
+      const { data, error } = await supabase.from('ledger_entries').insert(records).select();
+      if (error) throw error;
+      return (data || []).map(row => new LedgerEntry(toJsDoc(row)));
+    }
+
     const record = toDbRecord({
       status: 'active',
       sourceSeq: 0,

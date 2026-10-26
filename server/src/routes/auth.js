@@ -110,7 +110,11 @@ router.post('/demo-login', async (req, res) => {
 
     res.json({ user, token });
   } catch (err) {
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Demo login error:', err.message);
+    const errorMsg = err.message?.includes('schema cache')
+      ? 'Supabase tables not initialized: Please run supabase_schema.sql in your Supabase SQL Editor!'
+      : `Login failed: ${err.message}`;
+    res.status(500).json({ error: errorMsg });
   }
 });
 

@@ -27,6 +27,22 @@ export class Message {
 
   static async create(doc) {
     const supabase = getSupabase();
+    if (Array.isArray(doc)) {
+      const records = doc.map(d => {
+        const r = toDbRecord({
+          blocks: [],
+          usage: { inputTokens: 0, outputTokens: 0 },
+          isSummary: false,
+          ...d,
+        });
+        delete r.id;
+        return r;
+      });
+      const { data, error } = await supabase.from('messages').insert(records).select();
+      if (error) throw error;
+      return (data || []).map(row => new Message(toJsDoc(row)));
+    }
+
     const record = toDbRecord({
       blocks: [],
       usage: { inputTokens: 0, outputTokens: 0 },

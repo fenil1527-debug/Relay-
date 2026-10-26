@@ -215,7 +215,7 @@ export default router;
   await ProviderAttempt.create({
     turnId: turn._id,
     provider: 'anthropic:claude-3-5-sonnet-20241022',
-    outcome: 'failed',
+    outcome: 'failover',
     errorClass: 'rate_limit',
     latencyMs: 340,
     tokensIn: 412,
