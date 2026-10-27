@@ -18,6 +18,9 @@ const clientDistPath = path.resolve(__dirname, '../../client/dist');
 
 const app = express();
 
+// Trust reverse proxy headers (for Render, Railway, Heroku, Cloudflare)
+app.set('trust proxy', 1);
+
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {

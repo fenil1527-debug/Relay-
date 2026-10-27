@@ -7,18 +7,31 @@ import config from '../config/index.js';
 
 const router = Router();
 
+function getCallbackURL(req) {
+  if (config.githubCallbackUrl) return config.githubCallbackUrl;
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}/api/auth/github/callback`;
+}
+
+function getClientRedirectBase(req) {
+  if (config.clientUrl && !config.clientUrl.includes('localhost')) {
+    return config.clientUrl;
+  }
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    return `${proto}://${host}`;
+  }
+  return config.clientUrl || 'http://localhost:5173';
+}
+
 // Configure GitHub OAuth strategy
 if (config.githubClientId && config.githubClientSecret) {
-  const callbackURL = config.githubCallbackUrl || (
-    config.nodeEnv === 'production' && config.clientUrl && !config.clientUrl.includes('localhost')
-      ? `${config.clientUrl}/api/auth/github/callback`
-      : `http://localhost:${config.port}/api/auth/github/callback`
-  );
-
   passport.use(new GitHubStrategy({
     clientID: config.githubClientId,
     clientSecret: config.githubClientSecret,
-    callbackURL,
+    callbackURL: config.githubCallbackUrl || '/api/auth/github/callback',
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       let user = await User.findOne({ githubId: profile.id });
@@ -46,31 +59,45 @@ if (config.githubClientId && config.githubClientSecret) {
 
 // GitHub OAuth initiation
 router.get('/github', (req, res, next) => {
+  const redirectBase = getClientRedirectBase(req);
   if (!config.githubClientId || !config.githubClientSecret) {
-    return res.redirect(`${config.clientUrl}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
+    return res.redirect(`${redirectBase}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
   }
-  passport.authenticate('github', { scope: ['user:email'], session: false })(req, res, next);
+  const callbackURL = getCallbackURL(req);
+  passport.authenticate('github', {
+    scope: ['user:email'],
+    session: false,
+    callbackURL,
+  })(req, res, next);
 });
 
 // GitHub OAuth callback
 router.get('/github/callback', (req, res, next) => {
+  const redirectBase = getClientRedirectBase(req);
   if (!config.githubClientId || !config.githubClientSecret) {
-    return res.redirect(`${config.clientUrl}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
+    return res.redirect(`${redirectBase}/login?error=GitHub+OAuth+not+configured.+Use+1-Click+Demo+Login.`);
   }
-  passport.authenticate('github', { failureRedirect: `${config.clientUrl}/login?error=auth_failed`, session: false })(req, res, next);
+  const callbackURL = getCallbackURL(req);
+  passport.authenticate('github', {
+    failureRedirect: `${redirectBase}/login?error=auth_failed`,
+    session: false,
+    callbackURL,
+  })(req, res, next);
 },
   (req, res) => {
     const token = generateToken(req.user._id.toString());
+    const redirectBase = getClientRedirectBase(req);
+    const isSecure = config.nodeEnv === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
     
     // Set httpOnly cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: config.nodeEnv === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.redirect(`${config.clientUrl}/dashboard?token=${token}`);
+    res.redirect(`${redirectBase}/dashboard?token=${token}`);
   }
 );
 
