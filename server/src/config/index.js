@@ -22,6 +22,7 @@ const config = {
   jwtSecret: process.env.AUTH_SECRET || 'dev-secret-change-me',
   githubClientId: process.env.GITHUB_CLIENT_ID,
   githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
+  githubCallbackUrl: process.env.GITHUB_CALLBACK_URL || '',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   
   // Providers

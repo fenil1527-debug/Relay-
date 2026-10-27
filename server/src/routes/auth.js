@@ -9,10 +9,16 @@ const router = Router();
 
 // Configure GitHub OAuth strategy
 if (config.githubClientId && config.githubClientSecret) {
+  const callbackURL = config.githubCallbackUrl || (
+    config.nodeEnv === 'production' && config.clientUrl && !config.clientUrl.includes('localhost')
+      ? `${config.clientUrl}/api/auth/github/callback`
+      : `http://localhost:${config.port}/api/auth/github/callback`
+  );
+
   passport.use(new GitHubStrategy({
     clientID: config.githubClientId,
     clientSecret: config.githubClientSecret,
-    callbackURL: `http://localhost:${config.port}/api/auth/github/callback`,
+    callbackURL,
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       let user = await User.findOne({ githubId: profile.id });
@@ -64,7 +70,7 @@ router.get('/github/callback', (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.redirect(`${config.clientUrl}/dashboard`);
+    res.redirect(`${config.clientUrl}/dashboard?token=${token}`);
   }
 );
 
