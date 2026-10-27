@@ -19,11 +19,11 @@ const config = {
   databaseUrl: process.env.DATABASE_URL || '',
   
   // Auth
-  jwtSecret: process.env.AUTH_SECRET || 'dev-secret-change-me',
-  githubClientId: process.env.GITHUB_CLIENT_ID,
-  githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
-  githubCallbackUrl: process.env.GITHUB_CALLBACK_URL || '',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  jwtSecret: process.env.AUTH_SECRET ? process.env.AUTH_SECRET.trim().replace(/^["']|["']$/g, '') : 'dev-secret-change-me',
+  githubClientId: process.env.GITHUB_CLIENT_ID ? process.env.GITHUB_CLIENT_ID.trim().replace(/^["']|["']$/g, '') : undefined,
+  githubClientSecret: process.env.GITHUB_CLIENT_SECRET ? process.env.GITHUB_CLIENT_SECRET.trim().replace(/^["']|["']$/g, '') : undefined,
+  githubCallbackUrl: process.env.GITHUB_CALLBACK_URL ? process.env.GITHUB_CALLBACK_URL.trim().replace(/^["']|["']$/g, '') : '',
+  clientUrl: process.env.CLIENT_URL ? process.env.CLIENT_URL.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '') : 'http://localhost:5173',
   
   // Providers
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
