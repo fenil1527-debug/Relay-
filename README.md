@@ -99,8 +99,6 @@ Express API Server
 3. **Single running turn**: A partial unique index ensures only one agent loop runs per session at a time.
 4. **Ownership isolation**: Every database query is scoped by `userId` through `sessions`. Unauthorized and nonexistent resources return the same 404.
 
-For the full architecture document, see [ARCHITECTURE.md](./ARCHITECTURE.md).
-
 ---
 
 ## Local Setup
@@ -211,7 +209,6 @@ relay/
 │
 ├── .env.example                # Environment template
 ├── .gitignore
-├── ARCHITECTURE.md             # Detailed architecture document
 ├── package.json                # Root package with dev scripts
 └── README.md                   # This file
 ```
