@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import config from './config/index.js';
 import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/sessions.js';
@@ -9,11 +12,25 @@ import turnRoutes from './routes/turns.js';
 import fileRoutes from './routes/files.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+
 const app = express();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: config.clientUrl,
+  origin: (origin, callback) => {
+    // Allow same-origin, curl, server-to-server or any origin
+    if (!origin) return callback(null, true);
+    if (!config.clientUrl || config.clientUrl === '*' || origin === config.clientUrl) {
+      return callback(null, true);
+    }
+    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
@@ -48,7 +65,18 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: message });
 });
 
-// 404 handler
+// ── Frontend Static Assets (Production SPA) ───────────────────────────────
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
+// 404 handler for unmatched API routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
