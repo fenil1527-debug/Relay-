@@ -30,6 +30,9 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       const res = await authApi.demoLogin();
+      if (res.token) {
+        localStorage.setItem('token', res.token);
+      }
       setUser(res.user);
       setError(null);
       return res.user;
@@ -44,9 +47,12 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await authApi.logout();
+      localStorage.removeItem('token');
       setUser(null);
     } catch (err) {
       console.error('Logout error:', err);
+      localStorage.removeItem('token');
+      setUser(null);
     }
   }
 

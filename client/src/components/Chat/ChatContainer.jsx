@@ -9,6 +9,7 @@ export default function ChatContainer({
   currentHandoff,
   failedAttempt,
   onFileClick,
+  onSelectPrompt,
 }) {
   const bottomRef = useRef(null);
 
@@ -29,8 +30,22 @@ export default function ChatContainer({
               Your provider-neutral agent with seamless multi-model failover. Start by typing a prompt below.
             </p>
             <div className="suggested-prompts">
-              <span className="suggestion-chip">"Create an Express REST API for an e-commerce cart"</span>
-              <span className="suggestion-chip">"Write a Python script that scrapes Hacker News"</span>
+              <button
+                type="button"
+                className="suggestion-chip"
+                onClick={() => onSelectPrompt && onSelectPrompt('Create an Express REST API for an e-commerce cart')}
+                style={{ cursor: 'pointer', background: 'none', border: '1px solid var(--border-default)', textAlign: 'left', font: 'inherit' }}
+              >
+                "Create an Express REST API for an e-commerce cart"
+              </button>
+              <button
+                type="button"
+                className="suggestion-chip"
+                onClick={() => onSelectPrompt && onSelectPrompt('Write a Python script that scrapes Hacker News')}
+                style={{ cursor: 'pointer', background: 'none', border: '1px solid var(--border-default)', textAlign: 'left', font: 'inherit' }}
+              >
+                "Write a Python script that scrapes Hacker News"
+              </button>
             </div>
           </div>
         )}

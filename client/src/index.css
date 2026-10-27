@@ -1,9 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════════════════
    Relay — Studio Design System (Adaptive Light / Dark Mode)
-   Modern, Clean, High-Precision Developer Studio Aesthetic
+   High-Precision Developer Studio Aesthetic: Cyber Mint & Obsidian Titanium
    ══════════════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ── Theme Definitions ─────────────────────────────────────────────────────── */
 
@@ -11,51 +11,52 @@
 [data-theme='dark'] {
   --theme-mode: 'dark';
 
-  /* Surface & Canvas */
-  --bg-app: #090a0f;
-  --bg-primary: #0e1017;
-  --bg-secondary: #141722;
-  --bg-tertiary: #1b1f2e;
-  --bg-elevated: #23283b;
-  --bg-hover: #2b3147;
-  --bg-active: #343c57;
+  /* Surface & Canvas (Obsidian Titanium) */
+  --bg-app: #08090c;
+  --bg-primary: #0d1016;
+  --bg-secondary: #131720;
+  --bg-tertiary: #191f2c;
+  --bg-elevated: #21293a;
+  --bg-hover: #293348;
+  --bg-active: #33405b;
 
   /* Borders & Dividers */
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
-  --border-highlight: rgba(99, 102, 241, 0.4);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-highlight: rgba(0, 220, 130, 0.45);
 
   /* Typography */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-tertiary: #64748b;
   --text-muted: #475569;
-  --text-inverse: #090a0f;
+  --text-inverse: #08090c;
 
-  /* Primary Brand (Studio Iris) */
-  --accent-primary: #6366f1;
-  --accent-hover: #7c80f4;
-  --accent-active: #4f46e5;
-  --accent-subtle: rgba(99, 102, 241, 0.12);
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-  --accent-glow: 0 0 24px rgba(99, 102, 241, 0.35);
+  /* Primary Brand (Electric Cyber Mint & Cyan) */
+  --accent-primary: #00dc82;
+  --accent-hover: #10f092;
+  --accent-active: #00b368;
+  --accent-text: #050807;
+  --accent-subtle: rgba(0, 220, 130, 0.12);
+  --accent-gradient: linear-gradient(135deg, #00dc82 0%, #06b6d4 50%, #3b82f6 100%);
+  --accent-glow: 0 0 24px rgba(0, 220, 130, 0.35);
 
   /* Semantic Feedback */
-  --status-success: #10b981;
-  --status-success-bg: rgba(16, 185, 129, 0.12);
+  --status-success: #00dc82;
+  --status-success-bg: rgba(0, 220, 130, 0.12);
   --status-warning: #f59e0b;
   --status-warning-bg: rgba(245, 158, 11, 0.12);
-  --status-error: #ef4444;
-  --status-error-bg: rgba(239, 68, 68, 0.12);
-  --status-info: #3b82f6;
-  --status-info-bg: rgba(59, 130, 246, 0.12);
+  --status-error: #f43f5e;
+  --status-error-bg: rgba(244, 63, 94, 0.12);
+  --status-info: #06b6d4;
+  --status-info-bg: rgba(6, 182, 212, 0.12);
 
   /* AI Providers */
   --provider-anthropic: #f97316;
   --provider-anthropic-bg: rgba(249, 115, 22, 0.14);
-  --provider-openai: #10b981;
-  --provider-openai-bg: rgba(16, 185, 129, 0.14);
+  --provider-openai: #00dc82;
+  --provider-openai-bg: rgba(0, 220, 130, 0.14);
   --provider-groq: #f43f5e;
   --provider-groq-bg: rgba(244, 63, 94, 0.14);
 
@@ -63,43 +64,44 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.2);
-  --glass-bg: rgba(14, 16, 23, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --shadow-glow: 0 0 30px rgba(0, 220, 130, 0.22);
+  --glass-bg: rgba(13, 16, 22, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.09);
 }
 
 [data-theme='light'] {
   --theme-mode: 'light';
 
-  /* Surface & Canvas */
-  --bg-app: #f1f5f9;
+  /* Surface & Canvas (Clean Slate & Platinum) */
+  --bg-app: #f4f6f9;
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
+  --bg-tertiary: #edf2f7;
   --bg-elevated: #e2e8f0;
   --bg-hover: #cbd5e1;
   --bg-active: #94a3b8;
 
   /* Borders & Dividers */
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-default: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.18);
-  --border-highlight: rgba(79, 70, 229, 0.4);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --border-highlight: rgba(5, 150, 105, 0.38);
 
   /* Typography */
-  --text-primary: #0f172a;
+  --text-primary: #090d16;
   --text-secondary: #475569;
   --text-tertiary: #64748b;
   --text-muted: #94a3b8;
   --text-inverse: #ffffff;
 
-  /* Primary Brand (Studio Indigo) */
-  --accent-primary: #4f46e5;
-  --accent-hover: #6366f1;
-  --accent-active: #4338ca;
-  --accent-subtle: rgba(79, 70, 229, 0.08);
-  --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
-  --accent-glow: 0 0 20px rgba(79, 70, 229, 0.25);
+  /* Primary Brand (Deep Emerald & Ocean Cyan) */
+  --accent-primary: #059669;
+  --accent-hover: #10b981;
+  --accent-active: #047857;
+  --accent-text: #ffffff;
+  --accent-subtle: rgba(5, 150, 105, 0.09);
+  --accent-gradient: linear-gradient(135deg, #059669 0%, #0891b2 50%, #2563eb 100%);
+  --accent-glow: 0 0 20px rgba(5, 150, 105, 0.25);
 
   /* Semantic Feedback */
   --status-success: #059669;
@@ -108,8 +110,8 @@
   --status-warning-bg: rgba(217, 119, 6, 0.1);
   --status-error: #dc2626;
   --status-error-bg: rgba(220, 38, 38, 0.1);
-  --status-info: #2563eb;
-  --status-info-bg: rgba(37, 99, 235, 0.1);
+  --status-info: #0284c7;
+  --status-info-bg: rgba(2, 132, 199, 0.1);
 
   /* AI Providers */
   --provider-anthropic: #ea580c;
@@ -123,15 +125,15 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 25px rgba(79, 70, 229, 0.15);
-  --glass-bg: rgba(255, 255, 255, 0.85);
+  --shadow-glow: 0 0 25px rgba(5, 150, 105, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.88);
   --glass-border: rgba(0, 0, 0, 0.08);
 }
 
 /* ── Typography & Global Reset ────────────────────────────────────────────── */
 
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
 
   --radius-xs: 4px;
@@ -253,14 +255,15 @@ input:focus, textarea:focus, select:focus {
 
 .btn-primary {
   background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  color: var(--accent-text, #ffffff);
+  box-shadow: 0 2px 10px rgba(0, 220, 130, 0.25);
+  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
   opacity: 0.94;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 220, 130, 0.38);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -474,8 +477,8 @@ input:focus, textarea:focus, select:focus {
   height: 32px;
   border-radius: var(--radius-md);
   background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+  color: var(--accent-text, #ffffff);
+  box-shadow: 0 2px 10px rgba(0, 220, 130, 0.35);
 }
 
 .brand-badge {
@@ -650,7 +653,7 @@ input:focus, textarea:focus, select:focus {
   height: 58px;
   border-radius: var(--radius-lg);
   background: var(--accent-gradient);
-  color: #ffffff;
+  color: var(--accent-text, #ffffff);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1127,8 +1130,8 @@ input:focus, textarea:focus, select:focus {
 
 .avatar-assistant {
   background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  color: var(--accent-text, #ffffff);
+  box-shadow: 0 2px 10px rgba(0, 220, 130, 0.25);
 }
 
 .pulse-avatar {
@@ -1243,7 +1246,7 @@ input:focus, textarea:focus, select:focus {
 
 .tool-call-card.running {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 12px rgba(0, 220, 130, 0.25);
 }
 
 .tool-call-card.error {

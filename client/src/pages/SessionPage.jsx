@@ -85,12 +85,24 @@ export default function SessionPage() {
     try {
       setIsSavingFile(true);
       const updated = await filesApi.save(sessionId, path, content);
-      setActiveFile(updated.file);
+      const fileData = updated.file || updated;
+      const newVersion = fileData.version || 1;
 
-      // Update in file list
-      setFiles((prev) =>
-        prev.map((f) => (f.path === path ? { ...f, version: updated.file.version } : f))
-      );
+      setActiveFile({
+        path,
+        content,
+        version: newVersion,
+        updatedAt: fileData.updatedAt || new Date().toISOString(),
+      });
+
+      // Update in file list or append if new
+      setFiles((prev) => {
+        const exists = prev.some((f) => f.path === path);
+        if (exists) {
+          return prev.map((f) => (f.path === path ? { ...f, version: newVersion } : f));
+        }
+        return [...prev, { path, version: newVersion, updatedAt: fileData.updatedAt || new Date().toISOString() }];
+      });
     } catch (err) {
       alert(`Save failed: ${err.message}`);
     } finally {
@@ -98,11 +110,34 @@ export default function SessionPage() {
     }
   };
 
-  const handleNewFile = () => {
+  const handleNewFile = async () => {
     const filename = prompt('Enter new file path (e.g. src/index.js):');
     if (!filename) return;
 
-    handleSaveFileContent(filename.trim(), '// New file created in virtual workspace\n');
+    const trimmed = filename.trim();
+    const initialContent = '// New file created in virtual workspace\n';
+    await handleSaveFileContent(trimmed, initialContent);
+    await loadFileContent(trimmed);
+  };
+
+  const handleUpdateProvider = async (newProvider) => {
+    try {
+      const res = await sessionsApi.updateProvider(sessionId, newProvider);
+      setSession((prev) => ({ ...prev, activeProvider: newProvider }));
+      if (res.handoff) {
+        setHandoffs((prev) => [
+          ...prev,
+          {
+            fromProvider: res.handoff.from,
+            toProvider: res.handoff.to,
+            reason: 'Manual provider swap by user',
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      }
+    } catch (err) {
+      alert(`Provider switch failed: ${err.message}`);
+    }
   };
 
   const handleSendMessage = (content, simulateHeader = null) => {
@@ -197,7 +232,7 @@ export default function SessionPage() {
         // Reload files list
         filesApi.list(sessionId).then((res) => {
           setFiles(res.files || []);
-          if (activeFile && activeFile.path === event.path) {
+          if (!activeFile || activeFile.path === event.path) {
             loadFileContent(event.path);
           }
         });
@@ -276,7 +311,7 @@ export default function SessionPage() {
 
   return (
     <div className="app-shell session-shell">
-      <Navbar activeSession={session} />
+      <Navbar activeSession={session} onUpdateProvider={handleUpdateProvider} />
 
       {error && (
         <div className="alert-banner alert-warning">
@@ -297,6 +332,7 @@ export default function SessionPage() {
             currentHandoff={currentHandoff}
             failedAttempt={failedAttempt}
             onFileClick={(path) => loadFileContent(path)}
+            onSelectPrompt={(prompt) => handleSendMessage(prompt)}
           />
 
           <ChatInput

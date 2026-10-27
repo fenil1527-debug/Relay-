@@ -135,13 +135,17 @@ export class SupabaseQuery {
   select(fields) {
     if (typeof fields === 'string') {
       const parts = fields.trim().split(/\s+/);
-      const cols = new Set(['id']);
-      for (const p of parts) {
-        if (!p.startsWith('-')) {
+      const positiveParts = parts.filter(p => !p.startsWith('-'));
+      if (positiveParts.length > 0) {
+        const cols = new Set(['id']);
+        for (const p of positiveParts) {
           cols.add(toDbColumn(p));
         }
+        this._select = Array.from(cols).join(', ');
+      } else {
+        // Only negative/exclusion projections were specified, select all columns
+        this._select = '*';
       }
-      this._select = Array.from(cols).join(', ');
     }
     return this;
   }

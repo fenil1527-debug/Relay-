@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IconCode, IconFile, IconCheck, IconAlert, IconChevronDown, IconChevronRight } from '../common/Icons.jsx';
 
-export default function ToolCallCard({ toolCall, result, isRunning }) {
+export default function ToolCallCard({ toolCall, result, isRunning, onFileClick }) {
   const [expanded, setExpanded] = useState(false);
 
   const getToolIcon = (name) => {
@@ -41,7 +41,21 @@ export default function ToolCallCard({ toolCall, result, isRunning }) {
             {getToolIcon(toolName)}
             <span className="tool-name">{toolName}</span>
           </span>
-          {targetPath && <span className="tool-target">{targetPath}</span>}
+          {targetPath && (
+            <span
+              className="tool-target"
+              onClick={(e) => {
+                if (onFileClick) {
+                  e.stopPropagation();
+                  onFileClick(targetPath);
+                }
+              }}
+              style={onFileClick ? { cursor: 'pointer', textDecoration: 'underline' } : undefined}
+              title={onFileClick ? 'Click to open in editor' : undefined}
+            >
+              {targetPath}
+            </span>
+          )}
         </div>
 
         <div className="tool-call-status">

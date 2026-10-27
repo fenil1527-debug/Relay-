@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
 import { IconCpu, IconHandoff, IconZap, IconSun, IconMoon } from '../common/Icons.jsx';
 
-export default function Navbar({ activeSession }) {
+export default function Navbar({ activeSession, onUpdateProvider }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -54,10 +54,26 @@ export default function Navbar({ activeSession }) {
         {activeSession && (
           <div className="active-provider-indicator">
             <span className="label">Active Model:</span>
-            <span className={`badge ${getProviderBadgeClass(activeSession.activeProvider)}`}>
-              <span className="pulse-dot" style={{ width: 6, height: 6 }} />
-              {formatProviderName(activeSession.activeProvider)}
-            </span>
+            {onUpdateProvider && activeSession.fallbackChain && activeSession.fallbackChain.length > 1 ? (
+              <select
+                className={`badge ${getProviderBadgeClass(activeSession.activeProvider)} provider-selector-badge`}
+                value={activeSession.activeProvider}
+                onChange={(e) => onUpdateProvider(e.target.value)}
+                title="Switch active model"
+                style={{ cursor: 'pointer', appearance: 'auto', border: 'none', outline: 'none' }}
+              >
+                {activeSession.fallbackChain.map((p) => (
+                  <option key={p} value={p}>
+                    {formatProviderName(p)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className={`badge ${getProviderBadgeClass(activeSession.activeProvider)}`}>
+                <span className="pulse-dot" style={{ width: 6, height: 6 }} />
+                {formatProviderName(activeSession.activeProvider)}
+              </span>
+            )}
 
             {activeSession.fallbackChain && activeSession.fallbackChain.length > 1 && (
               <div className="fallback-pill" title="Automatic fallback chain active">

@@ -24,8 +24,8 @@ export default function DashboardPage() {
 
   // Form state
   const [title, setTitle] = useState('');
-  const [primaryProvider, setPrimaryProvider] = useState('anthropic:claude-3-5-sonnet-20241022');
-  const [secondaryProvider, setSecondaryProvider] = useState('groq:openai/gpt-oss-120b');
+  const [primaryProvider, setPrimaryProvider] = useState('groq:openai/gpt-oss-120b');
+  const [secondaryProvider, setSecondaryProvider] = useState('anthropic:claude-3-5-sonnet-20241022');
   const [tokenCap, setTokenCap] = useState(100000);
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);

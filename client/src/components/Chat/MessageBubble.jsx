@@ -61,6 +61,7 @@ export default function MessageBubble({ message, onFileClick }) {
             toolCall={block}
             result={resultBlock}
             isRunning={!resultBlock}
+            onFileClick={onFileClick}
           />
         );
       } else if (block.type === 'tool_result') {

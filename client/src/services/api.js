@@ -5,6 +5,11 @@
 
 const API_BASE = '/api';
 
+function getAuthHeaders() {
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 /**
  * Common fetch wrapper with JSON and error handling
  */
@@ -12,6 +17,7 @@ async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',
+    ...getAuthHeaders(),
     ...(options.headers || {}),
   };
 
@@ -54,9 +60,9 @@ export const sessionsApi = {
     method: 'POST',
     body: JSON.stringify(data),
   }),
-  updateProvider: (id, activeProvider) => request(`/sessions/${id}/provider`, {
+  updateProvider: (id, provider) => request(`/sessions/${id}/provider`, {
     method: 'PATCH',
-    body: JSON.stringify({ activeProvider }),
+    body: JSON.stringify({ provider, activeProvider: provider }),
   }),
   delete: (id) => request(`/sessions/${id}`, {
     method: 'DELETE',
@@ -88,6 +94,7 @@ export function streamTurn(sessionId, content, { onEvent, onError, onDone }, sim
   const controller = new AbortController();
   const headers = {
     'Content-Type': 'application/json',
+    ...getAuthHeaders(),
   };
   if (simulateHeader) {
     headers['x-relay-simulate'] = simulateHeader;

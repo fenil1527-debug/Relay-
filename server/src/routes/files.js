@@ -112,8 +112,15 @@ router.put('/:id/files/:path(*)', async (req, res) => {
 
     res.json({
       path: file.path,
+      content: file.content,
       version: file.version,
       updatedAt: file.updatedAt,
+      file: {
+        path: file.path,
+        content: file.content,
+        version: file.version,
+        updatedAt: file.updatedAt,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save file' });
