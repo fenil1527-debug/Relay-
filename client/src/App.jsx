@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import ProtectedRoute from './components/Auth/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -9,8 +10,9 @@ import SessionPage from './pages/SessionPage.jsx';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/dashboard"
@@ -31,7 +33,8 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </AuthProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

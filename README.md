@@ -53,15 +53,15 @@ Agent responses stream in real-time via Server-Sent Events. Every step is persis
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend** | React 19, Vite 8, React Router 7 | SPA with client-side routing |
-| **Editor** | Monaco Editor (via @monaco-editor/react) | In-browser code editing with syntax highlighting |
-| **Backend** | Node.js, Express 4 | REST API + SSE streaming |
-| **Database** | MongoDB (Mongoose 8) | Document storage for sessions, messages, files, ledger |
-| **Auth** | Passport.js (GitHub OAuth) + JWT | Authentication with httpOnly cookies |
-| **AI Providers** | Anthropic SDK, OpenAI SDK | Two adapter families covering Claude, GPT-4, Groq, OpenRouter |
+| **Frontend** | React 19, Vite 8, React Router 7 | SPA with client-side routing & theme persistence |
+| **Editor** | Monaco Editor (via @monaco-editor/react) | Adaptive in-browser code editing (`vs` / `vs-dark`) |
+| **Backend** | Node.js, Express 4 | REST API + SSE streaming orchestrator |
+| **Database** | Supabase (PostgreSQL) & MongoDB | Document / relational storage for sessions, files, ledger |
+| **Auth** | Passport.js (GitHub OAuth) + JWT | Authentication with httpOnly cookies & 1-Click Demo login |
+| **AI Providers** | Anthropic, OpenAI, Groq (`gpt-oss-120b`) | Provider-neutral adapter pipeline with auto-failover |
 | **Validation** | Zod | Schema validation at API boundaries |
 | **Rate Limiting** | express-rate-limit | Per-user request throttling |
-| **Styling** | Vanilla CSS (1700+ lines design system) | Dark-mode glassmorphism UI with Inter + JetBrains Mono |
+| **Styling** | Vanilla CSS (Studio Design System) | Adaptive Light/Dark mode, glassmorphism, Inter + JetBrains Mono |
 
 ---
 
@@ -108,10 +108,10 @@ For the full architecture document, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 ### Prerequisites
 
 - **Node.js** v18+ (recommended: v20+)
-- **MongoDB** running locally on port 27017 (or a MongoDB Atlas connection string)
-- At least one AI provider API key (Anthropic or OpenAI)
+- **Supabase** project (or local PostgreSQL / MongoDB)
+- At least one AI provider API key (Groq, Anthropic, or OpenAI)
 
-### Installation
+### Installation & Supabase Setup
 
 ```bash
 # 1. Clone the repository
@@ -121,9 +121,13 @@ cd relay
 # 2. Install all dependencies (root + server + client)
 npm run install:all
 
-# 3. Create your environment file
+# 3. Create database tables in Supabase
+# Open your Supabase SQL Editor and execute the schema file:
+# supabase_schema.sql
+
+# 4. Create your environment file
 cp .env.example .env
-# Edit .env and add your API keys
+# Edit .env and add your Supabase URL & Key, plus AI API keys
 ```
 
 ### Running the App
@@ -141,10 +145,10 @@ Open **http://localhost:5173** in your browser.
 
 ### Quick Start (Demo Mode)
 
-1. Click **"Launch Demo Workspace (1-Click)"** on the login page — no GitHub OAuth needed
+1. Click **"Launch Studio Workspace (1-Click)"** on the login page — no GitHub OAuth needed
 2. Click **"New Session"** to create your first coding workspace
-3. Choose your primary provider and failover provider
-4. Start chatting — the agent will create and edit files in the virtual workspace
+3. Choose your primary provider and failover provider (e.g. Anthropic → OpenAI → Groq)
+4. Start chatting — the agent will plan in the Decision Ledger and create/edit files in Monaco Editor!
 
 ---
 
@@ -152,16 +156,19 @@ Open **http://localhost:5173** in your browser.
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | MongoDB connection string |
+| `SUPABASE_URL` | Recommended | Supabase project URL (`https://xyz.supabase.co`) |
+| `SUPABASE_KEY` | Recommended | Supabase public/anon or service role key |
+| `DATABASE_URL` | Fallback | MongoDB connection string (if not using Supabase) |
 | `AUTH_SECRET` | Yes | JWT signing secret |
-| `GITHUB_CLIENT_ID` | No | GitHub OAuth (optional — demo login works without it) |
+| `GITHUB_CLIENT_ID` | No | GitHub OAuth (optional — 1-click login works without it) |
 | `GITHUB_CLIENT_SECRET` | No | GitHub OAuth secret |
 | `CLIENT_URL` | Yes | Frontend URL (default: `http://localhost:5173`) |
-| `ANTHROPIC_API_KEY` | Conditional | Required if using Anthropic as a provider |
-| `OPENAI_API_KEY` | Conditional | Required if using OpenAI as a provider |
-| `OPENAI_COMPAT_BASE_URL` | No | Base URL for OpenAI-compatible APIs (Groq, etc.) |
-| `OPENAI_COMPAT_API_KEY` | No | API key for OpenAI-compatible APIs |
-| `ENABLE_SIMULATION` | No | Enable `X-Relay-Simulate` header for testing handoffs |
+| `ANTHROPIC_API_KEY` | Conditional | Required if using Anthropic Claude |
+| `OPENAI_API_KEY` | Conditional | Required if using OpenAI GPT-4 |
+| `OPENAI_COMPAT_BASE_URL` | No | Base URL for OpenAI-compatible APIs (e.g. `https://api.groq.com/openai/v1`) |
+| `OPENAI_COMPAT_API_KEY` | Conditional | API key for Groq / OpenAI-compatible endpoint |
+| `OPENAI_COMPAT_MODEL` | No | Model name (default: `openai/gpt-oss-120b` on Groq) |
+| `ENABLE_SIMULATION` | No | Enable `X-Relay-Simulate` header for deterministic handoff testing |
 | `PORT` | No | Server port (default: 3001) |
 
 > **Security**: Never commit `.env` to git. The `.gitignore` is already configured.

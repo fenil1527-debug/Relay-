@@ -58,6 +58,9 @@ export const sessionsApi = {
     method: 'PATCH',
     body: JSON.stringify({ activeProvider }),
   }),
+  delete: (id) => request(`/sessions/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 /* ── Files API ──────────────────────────────────────────────────────────── */

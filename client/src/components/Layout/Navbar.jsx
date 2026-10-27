@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { IconCpu, IconHandoff, IconZap } from '../common/Icons.jsx';
+import { useTheme } from '../../context/ThemeContext.jsx';
+import { IconCpu, IconHandoff, IconZap, IconSun, IconMoon } from '../common/Icons.jsx';
 
-export default function Navbar({ activeSession, onSwitchProvider }) {
+export default function Navbar({ activeSession }) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -12,7 +14,7 @@ export default function Navbar({ activeSession, onSwitchProvider }) {
     navigate('/login');
   };
 
-  const getProviderClass = (provider) => {
+  const getProviderBadgeClass = (provider) => {
     if (!provider) return '';
     if (provider.includes('anthropic') || provider.includes('claude')) return 'provider-anthropic';
     if (provider.includes('openai') || provider.includes('gpt')) return 'provider-openai';
@@ -21,20 +23,21 @@ export default function Navbar({ activeSession, onSwitchProvider }) {
   };
 
   const formatProviderName = (p) => {
-    if (!p) return 'Unknown';
+    if (!p) return 'Ready';
     const [family, model] = p.split(':');
-    return `${family === 'anthropic' ? 'Anthropic' : family === 'openai' ? 'OpenAI' : 'Groq'} (${model || ''})`;
+    const brand = family === 'anthropic' ? 'Anthropic' : family === 'openai' ? 'OpenAI' : 'Groq';
+    return `${brand} (${model || ''})`;
   };
 
   return (
     <header className="navbar">
       <div className="navbar-brand">
-        <Link to="/dashboard" className="brand-logo">
+        <Link to="/dashboard" className="brand-logo" title="Relay Studio Home">
           <div className="logo-icon">
-            <IconZap size={20} />
+            <IconZap size={18} />
           </div>
           <span className="brand-name">Relay</span>
-          <span className="badge badge-accent brand-badge">v1.0</span>
+          <span className="badge badge-accent brand-badge">Studio</span>
         </Link>
 
         {activeSession && (
@@ -51,13 +54,13 @@ export default function Navbar({ activeSession, onSwitchProvider }) {
         {activeSession && (
           <div className="active-provider-indicator">
             <span className="label">Active Model:</span>
-            <span className={`badge ${getProviderClass(activeSession.activeProvider)}`}>
-              <IconCpu size={12} style={{ marginRight: 4 }} />
+            <span className={`badge ${getProviderBadgeClass(activeSession.activeProvider)}`}>
+              <span className="pulse-dot" style={{ width: 6, height: 6 }} />
               {formatProviderName(activeSession.activeProvider)}
             </span>
 
             {activeSession.fallbackChain && activeSession.fallbackChain.length > 1 && (
-              <div className="fallback-pill" title="Fallback chain configured">
+              <div className="fallback-pill" title="Automatic fallback chain active">
                 <IconHandoff size={12} />
                 <span>{activeSession.fallbackChain.length - 1} standby</span>
               </div>
@@ -67,6 +70,16 @@ export default function Navbar({ activeSession, onSwitchProvider }) {
       </div>
 
       <div className="navbar-actions">
+        {/* Adaptive Light/Dark Theme Switcher */}
+        <button
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Studio Mode`}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <IconSun size={17} /> : <IconMoon size={17} />}
+        </button>
+
         {user ? (
           <div className="user-menu">
             <div className="user-avatar" title={user.name || user.email}>

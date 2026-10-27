@@ -2,11 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sessionsApi } from '../services/api.js';
 import Navbar from '../components/Layout/Navbar.jsx';
-import { IconPlus, IconCpu, IconHandoff, IconZap, IconAlert, IconSparkles } from '../components/common/Icons.jsx';
+import {
+  IconPlus,
+  IconCpu,
+  IconHandoff,
+  IconZap,
+  IconAlert,
+  IconSparkles,
+  IconSearch,
+  IconTrash,
+  IconLayers,
+} from '../components/common/Icons.jsx';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -14,9 +25,10 @@ export default function DashboardPage() {
   // Form state
   const [title, setTitle] = useState('');
   const [primaryProvider, setPrimaryProvider] = useState('anthropic:claude-3-5-sonnet-20241022');
-  const [secondaryProvider, setSecondaryProvider] = useState('openai:gpt-4o');
+  const [secondaryProvider, setSecondaryProvider] = useState('groq:openai/gpt-oss-120b');
   const [tokenCap, setTokenCap] = useState(100000);
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     loadSessions();
@@ -44,6 +56,10 @@ export default function DashboardPage() {
       if (secondaryProvider && secondaryProvider !== primaryProvider) {
         chain.push(secondaryProvider);
       }
+      // Ensure Groq is included for free failover if not already in chain
+      if (!chain.some(p => p.includes('groq'))) {
+        chain.push('groq:openai/gpt-oss-120b');
+      }
 
       const res = await sessionsApi.create({
         title: title.trim(),
@@ -52,7 +68,8 @@ export default function DashboardPage() {
       });
 
       setShowCreateModal(false);
-      navigate(`/sessions/${res.session._id}`);
+      setTitle('');
+      navigate(`/sessions/${res.session._id || res.session.id}`);
     } catch (err) {
       setError(err.message || 'Failed to create session');
     } finally {
@@ -60,13 +77,38 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteSession = async (e, sessionId) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this workspace and all associated files?')) return;
+
+    try {
+      setDeletingId(sessionId);
+      await sessionsApi.delete(sessionId);
+      setSessions(prev => prev.filter(s => (s._id !== sessionId && s.id !== sessionId)));
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const getProviderClass = (p) => {
-    if (!p) return '';
+    if (!p) return 'badge-neutral';
     if (p.includes('anthropic')) return 'provider-anthropic';
     if (p.includes('openai')) return 'provider-openai';
     if (p.includes('groq')) return 'provider-groq';
-    return '';
+    return 'badge-neutral';
   };
+
+  const filteredSessions = sessions.filter(s => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (s.title && s.title.toLowerCase().includes(q)) ||
+      (s.activeProvider && s.activeProvider.toLowerCase().includes(q)) ||
+      (s.preview && s.preview.toLowerCase().includes(q))
+    );
+  });
 
   return (
     <div className="app-shell">
@@ -75,9 +117,9 @@ export default function DashboardPage() {
       <main className="dashboard-content">
         <div className="dashboard-header">
           <div>
-            <h1 className="page-title">Agent Sessions</h1>
+            <h1 className="page-title">Agent Workspaces</h1>
             <p className="page-subtitle">
-              Manage your autonomous coding workspaces and provider fallback chains.
+              Provider-neutral coding environments with automatic multi-model failover.
             </p>
           </div>
 
@@ -86,7 +128,7 @@ export default function DashboardPage() {
             onClick={() => setShowCreateModal(true)}
           >
             <IconPlus size={16} />
-            <span>New Session</span>
+            <span>New Workspace</span>
           </button>
         </div>
 
@@ -98,111 +140,148 @@ export default function DashboardPage() {
         )}
 
         {/* Stats Row */}
-        <div className="stats-row">
-          <div className="stat-card glassmorphism">
-            <div className="stat-icon-wrap icon-primary">
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon-wrapper">
+              <IconLayers size={20} />
+            </div>
+            <div>
+              <h3>{sessions.length}</h3>
+              <p>Active Workspaces</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon-wrapper">
               <IconCpu size={20} />
             </div>
-            <div className="stat-info">
-              <span className="stat-label">Total Workspaces</span>
-              <span className="stat-value">{sessions.length}</span>
+            <div>
+              <h3 style={{ fontSize: '1.15rem' }}>Groq + OpenAI + Claude</h3>
+              <p>Multi-Provider Mesh</p>
             </div>
           </div>
 
-          <div className="stat-card glassmorphism">
-            <div className="stat-icon-wrap icon-accent">
-              <IconHandoff size={20} />
-            </div>
-            <div className="stat-info">
-              <span className="stat-label">Multi-Model Architecture</span>
-              <span className="stat-value">Anthropic + OpenAI</span>
-            </div>
-          </div>
-
-          <div className="stat-card glassmorphism">
-            <div className="stat-icon-wrap icon-success">
+          <div className="stat-card">
+            <div className="stat-icon-wrapper" style={{ color: 'var(--status-success)', background: 'var(--status-success-bg)' }}>
               <IconZap size={20} />
             </div>
-            <div className="stat-info">
-              <span className="stat-label">Failover Engine</span>
-              <span className="stat-value">Active & Ready</span>
+            <div>
+              <h3 style={{ color: 'var(--status-success)', fontSize: '1.2rem' }}>Zero-Downtime</h3>
+              <p>Automatic Failover Active</p>
             </div>
           </div>
         </div>
 
+        {/* Controls Bar: Search & Filter */}
+        <div className="dashboard-controls">
+          <div className="search-box">
+            <IconSearch size={15} style={{ color: 'var(--text-tertiary)' }} />
+            <input
+              type="text"
+              placeholder="Search workspaces by name or provider..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)' }}>
+            Showing {filteredSessions.length} of {sessions.length} sessions
+          </span>
+        </div>
+
         {/* Sessions Grid */}
         {loading ? (
-          <div className="loading-state">
-            <span className="pulse-dot"></span>
-            <span>Loading workspaces...</span>
+          <div className="empty-state">
+            <span className="pulse-dot" style={{ width: 10, height: 10, marginBottom: 12 }}></span>
+            <p>Loading your workspaces...</p>
           </div>
-        ) : sessions.length === 0 ? (
-          <div className="dashboard-empty glassmorphism">
-            <IconSparkles size={40} className="empty-sparkle" />
-            <h3>No Sessions Yet</h3>
-            <p>Create your first autonomous coding session with instant multi-model failover.</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowCreateModal(true)}
-            >
-              <IconPlus size={16} />
-              <span>Create First Session</span>
-            </button>
+        ) : filteredSessions.length === 0 ? (
+          <div className="empty-state">
+            <IconSparkles size={36} className="empty-state-icon" />
+            <h3>{searchQuery ? 'No matching workspaces found' : 'No workspaces yet'}</h3>
+            <p>
+              {searchQuery
+                ? 'Try a different search query or clear the filter.'
+                : 'Create your first autonomous coding workspace with full context resilience.'}
+            </p>
+            {!searchQuery && (
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <IconPlus size={16} />
+                <span>Create First Workspace</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="sessions-grid">
-            {sessions.map((s) => (
-              <div
-                key={s._id}
-                className="session-card glassmorphism"
-                onClick={() => navigate(`/sessions/${s._id}`)}
-              >
-                <div className="session-card-header">
-                  <h3 className="session-card-title">{s.title}</h3>
-                  <span className={`badge ${getProviderClass(s.activeProvider)}`}>
-                    {s.activeProvider?.split(':')[0]}
-                  </span>
-                </div>
-
-                <p className="session-preview">
-                  {s.preview || 'No messages yet in this session.'}
-                </p>
-
-                <div className="session-card-footer">
-                  <div className="session-meta">
-                    <span>{s.messageCount || 0} messages</span>
-                    <span>·</span>
-                    <span>Cap: {(s.tokenCap / 1000).toFixed(0)}k tok</span>
+            {filteredSessions.map((s) => {
+              const sid = s._id || s.id;
+              return (
+                <div
+                  key={sid}
+                  className="session-card"
+                  onClick={() => navigate(`/sessions/${sid}`)}
+                >
+                  <div className="session-card-header">
+                    <h3 className="session-card-title">{s.title}</h3>
+                    <span className={`badge ${getProviderClass(s.activeProvider)}`}>
+                      {s.activeProvider?.split(':')[0] || 'Claude'}
+                    </span>
                   </div>
 
-                  <span className="open-arrow">→</span>
+                  <p className="session-preview-text">
+                    {s.preview || 'Fresh coding session ready for prompts and file editing.'}
+                  </p>
+
+                  <div className="session-card-footer">
+                    <div className="session-meta-items">
+                      <span>{s.messageCount || 0} messages</span>
+                      <span>•</span>
+                      <span>{((s.tokenCap || 100000) / 1000).toFixed(0)}k cap</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--text-tertiary)', padding: '4px 6px' }}
+                        onClick={(e) => handleDeleteSession(e, sid)}
+                        title="Delete workspace"
+                        disabled={deletingId === sid}
+                      >
+                        <IconTrash size={14} />
+                      </button>
+                      <span style={{ color: 'var(--accent-primary)', fontSize: '1.1rem', fontWeight: 600 }}>→</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
-        {/* Create Modal */}
+        {/* Create Session Modal */}
         {showCreateModal && (
-          <div className="modal-backdrop">
-            <div className="modal-card glassmorphism">
+          <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
+            <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>New Coding Session</h2>
+                <h2 className="modal-title">New Coding Workspace</h2>
                 <button
-                  className="close-btn"
+                  className="btn btn-ghost btn-sm"
                   onClick={() => setShowCreateModal(false)}
                 >
                   ✕
                 </button>
               </div>
 
-              <form onSubmit={handleCreateSession} className="modal-form">
-                <div className="form-group">
-                  <label htmlFor="title">Session Title</label>
+              <form onSubmit={handleCreateSession}>
+                <div className="modal-form-group">
+                  <label htmlFor="title" className="modal-label">Workspace Title</label>
                   <input
                     id="title"
                     type="text"
-                    placeholder="e.g. Build Payment Gateway, Refactor Auth"
+                    placeholder="e.g., Express E-Commerce Microservice"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -210,42 +289,46 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="primary">Primary Provider</label>
+                <div className="modal-form-group">
+                  <label htmlFor="primary" className="modal-label">Primary AI Provider</label>
                   <select
                     id="primary"
                     value={primaryProvider}
                     onChange={(e) => setPrimaryProvider(e.target.value)}
                   >
-                    <option value="anthropic:claude-3-5-sonnet-20241022">
-                      Anthropic Claude 3.5 Sonnet
+                    <option value="groq:openai/gpt-oss-120b">
+                      Groq (GPT OSS 120B — High Speed & Free)
                     </option>
-                    <option value="openai:gpt-4o">OpenAI GPT-4o</option>
-                    <option value="groq:llama-3.3-70b-versatile">
-                      Groq Llama 3.3 70B
+                    <option value="anthropic:claude-3-5-sonnet-20241022">
+                      Anthropic (Claude 3.5 Sonnet)
+                    </option>
+                    <option value="openai:gpt-4o">
+                      OpenAI (GPT-4o)
                     </option>
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="secondary">Standby Failover Provider</label>
+                <div className="modal-form-group">
+                  <label htmlFor="secondary" className="modal-label">Standby Failover Provider</label>
                   <select
                     id="secondary"
                     value={secondaryProvider}
                     onChange={(e) => setSecondaryProvider(e.target.value)}
                   >
-                    <option value="openai:gpt-4o">OpenAI GPT-4o</option>
-                    <option value="anthropic:claude-3-5-sonnet-20241022">
-                      Anthropic Claude 3.5 Sonnet
+                    <option value="groq:openai/gpt-oss-120b">
+                      Groq (GPT OSS 120B)
                     </option>
-                    <option value="groq:llama-3.3-70b-versatile">
-                      Groq Llama 3.3 70B
+                    <option value="openai:gpt-4o">
+                      OpenAI (GPT-4o)
+                    </option>
+                    <option value="anthropic:claude-3-5-sonnet-20241022">
+                      Anthropic (Claude 3.5 Sonnet)
                     </option>
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="tokencap">
+                <div className="modal-form-group">
+                  <label htmlFor="tokencap" className="modal-label">
                     Token Budget Cap: {(tokenCap / 1000).toFixed(0)}k tokens
                   </label>
                   <input
@@ -256,6 +339,7 @@ export default function DashboardPage() {
                     step="10000"
                     value={tokenCap}
                     onChange={(e) => setTokenCap(e.target.value)}
+                    style={{ padding: 0 }}
                   />
                 </div>
 
@@ -272,7 +356,7 @@ export default function DashboardPage() {
                     className="btn btn-primary"
                     disabled={creating || !title.trim()}
                   >
-                    {creating ? 'Creating...' : 'Initialize Session'}
+                    {creating ? 'Creating...' : 'Launch Workspace'}
                   </button>
                 </div>
               </form>
